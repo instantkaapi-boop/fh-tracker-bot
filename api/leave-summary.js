@@ -1,6 +1,7 @@
 import { bot } from '../lib/bot.js';
 import { monthlyLeaveSummary } from '../lib/leave.js';
 import { todayIST, isLastDayOfMonthIST } from '../lib/logic.js';
+import { alertAdmin } from '../lib/alert.js';
 
 function isAuthorized(req) {
   const secret = process.env.CRON_SECRET;
@@ -45,6 +46,7 @@ export default async function handler(req, res) {
     res.status(200).json({ ok: true, monthStr, totals });
   } catch (err) {
     console.error('leave-summary error:', err);
+    await alertAdmin('Leave summary (/api/leave-summary)', err);
     res.status(500).json({ ok: false, error: 'internal error' });
   }
 }

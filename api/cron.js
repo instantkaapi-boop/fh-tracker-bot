@@ -2,6 +2,7 @@ import { bot } from '../lib/bot.js';
 import { fetchOpenRows } from '../lib/notion.js';
 import { formatBrief } from '../lib/format.js';
 import { fetchDailyQuote } from '../lib/quote.js';
+import { alertAdmin } from '../lib/alert.js';
 
 export const config = { maxDuration: 30 };
 
@@ -33,6 +34,7 @@ export default async function handler(req, res) {
     res.status(200).json({ ok: true, count: rows.length, quote });
   } catch (err) {
     console.error('cron error:', err);
+    await alertAdmin('Daily brief (/api/cron)', err);
     res.status(500).json({ ok: false, error: 'internal error' });
   }
 }

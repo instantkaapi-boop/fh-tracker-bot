@@ -1,5 +1,6 @@
 import { bot } from '../lib/bot.js';
 import { missingCheckins } from '../lib/checkin.js';
+import { alertAdmin } from '../lib/alert.js';
 
 function isAuthorized(req) {
   const secret = process.env.CRON_SECRET;
@@ -31,6 +32,7 @@ export default async function handler(req, res) {
     res.status(200).json({ ok: true, missing });
   } catch (err) {
     console.error('checkin-reminder error:', err);
+    await alertAdmin('Check-in reminder (/api/checkin-reminder)', err);
     res.status(500).json({ ok: false, error: 'internal error' });
   }
 }
