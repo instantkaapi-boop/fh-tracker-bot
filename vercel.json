@@ -2,6 +2,7 @@
   "crons": [
     { "path": "/api/cron", "schedule": "30 3 * * *" },
     { "path": "/api/checkin-reminder", "schedule": "30 5 * * *" },
-    { "path": "/api/checkout-reminder", "schedule": "0 13 * * *" }
+    { "path": "/api/checkout-reminder", "schedule": "0 13 * * *" },
+    { "path": "/api/leave-summary", "schedule": "30 14 * * *" }
   ]
 }
