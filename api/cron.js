@@ -26,7 +26,7 @@ export default async function handler(req, res) {
   try {
     const rows = await fetchOpenRows();
     const text = formatBrief(rows);
-    await bot.telegram.sendMessage(chatId, text);
+    await bot.telegram.sendMessage(chatId, text, { parse_mode: 'HTML' });
     res.status(200).json({ ok: true, count: rows.length });
   } catch (err) {
     console.error('cron error:', err);

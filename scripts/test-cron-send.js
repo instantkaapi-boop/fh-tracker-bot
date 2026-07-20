@@ -8,5 +8,5 @@ if (!chatId) throw new Error('TELEGRAM_GROUP_CHAT_ID not set in .env');
 
 const rows = await fetchOpenRows();
 const text = formatBrief(rows);
-await bot.telegram.sendMessage(chatId, text);
+await bot.telegram.sendMessage(chatId, text, { parse_mode: 'HTML' });
 console.log(`Sent to ${chatId}:\n${text}`);
