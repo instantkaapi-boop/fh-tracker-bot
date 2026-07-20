@@ -1,6 +1,9 @@
 import { bot } from '../lib/bot.js';
 import { fetchOpenRows } from '../lib/notion.js';
 import { formatBrief } from '../lib/format.js';
+import { fetchDailyQuote } from '../lib/quote.js';
+
+export const config = { maxDuration: 30 };
 
 function isAuthorized(req) {
   const secret = process.env.CRON_SECRET;
@@ -24,10 +27,10 @@ export default async function handler(req, res) {
   }
 
   try {
-    const rows = await fetchOpenRows();
-    const text = formatBrief(rows);
+    const [rows, quote] = await Promise.all([fetchOpenRows(), fetchDailyQuote()]);
+    const text = formatBrief(rows, { quote });
     await bot.telegram.sendMessage(chatId, text, { parse_mode: 'HTML' });
-    res.status(200).json({ ok: true, count: rows.length });
+    res.status(200).json({ ok: true, count: rows.length, quote });
   } catch (err) {
     console.error('cron error:', err);
     res.status(500).json({ ok: false, error: 'internal error' });
