@@ -1,5 +1,6 @@
 import { bot } from '../lib/bot.js';
 import { fetchOpenRows } from '../lib/notion.js';
+import { fetchOpenBrandTasks } from '../lib/brand.js';
 import { formatBrief } from '../lib/format.js';
 import { fetchDailyQuote } from '../lib/quote.js';
 import { alertAdmin } from '../lib/alert.js';
@@ -28,10 +29,14 @@ export default async function handler(req, res) {
   }
 
   try {
-    const [rows, quote] = await Promise.all([fetchOpenRows(), fetchDailyQuote()]);
-    const text = formatBrief(rows, { quote });
+    const [rows, brandTasks, quote] = await Promise.all([
+      fetchOpenRows(),
+      fetchOpenBrandTasks(),
+      fetchDailyQuote(),
+    ]);
+    const text = formatBrief(rows, { quote, brandTasks });
     await bot.telegram.sendMessage(chatId, text, { parse_mode: 'HTML' });
-    res.status(200).json({ ok: true, count: rows.length, quote });
+    res.status(200).json({ ok: true, count: rows.length, brandTaskCount: brandTasks.length, quote });
   } catch (err) {
     console.error('cron error:', err);
     await alertAdmin('Daily brief (/api/cron)', err);
