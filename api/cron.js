@@ -4,6 +4,7 @@ import { fetchOpenBrandTasks } from '../lib/brand.js';
 import { formatBrief } from '../lib/format.js';
 import { fetchDailyQuote } from '../lib/quote.js';
 import { alertAdmin } from '../lib/alert.js';
+import { isSundayIST } from '../lib/logic.js';
 
 export const config = { maxDuration: 30 };
 
@@ -19,6 +20,11 @@ function isAuthorized(req) {
 export default async function handler(req, res) {
   if (!isAuthorized(req)) {
     res.status(401).json({ ok: false, error: 'unauthorized' });
+    return;
+  }
+
+  if (isSundayIST()) {
+    res.status(200).json({ ok: true, skipped: 'sunday' });
     return;
   }
 
