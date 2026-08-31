@@ -6,6 +6,7 @@
     { "path": "/api/checkin-escalation", "schedule": "30 6 * * *" },
     { "path": "/api/weekly-stats", "schedule": "45 3 * * 1" },
     { "path": "/api/checkout-reminder", "schedule": "0 13 * * *" },
+    { "path": "/api/checkin-status", "schedule": "30 13 * * *" },
     { "path": "/api/leave-summary", "schedule": "30 14 * * *" },
     { "path": "/api/heartbeat", "schedule": "30 15 * * *" }
   ]
