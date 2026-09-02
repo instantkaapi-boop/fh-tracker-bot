@@ -4,6 +4,7 @@ import { fetchOpenBrandTasks } from '../lib/brand.js';
 import { todayCheckinStatus } from '../lib/checkin.js';
 import { classifyRows, stableSort, todayIST } from '../lib/logic.js';
 import { escapeHtml, formatDate } from '../lib/format.js';
+import { buildIcs } from '../lib/ics.js';
 
 export const config = { maxDuration: 30 };
 
@@ -37,9 +38,21 @@ function section(title, items, render) {
 
 // Read-only live view of the same data as the brief. Open with
 // https://<app>/api/dashboard?token=<DASHBOARD_TOKEN>. Server-rendered, no JS.
+// ?format=ics (or the /api/calendar rewrite) returns the due-date calendar feed instead.
 export default async function handler(req, res) {
   if (!hasDashboardToken(req)) {
     res.status(401).send('unauthorized');
+    return;
+  }
+  if (req.query?.format === 'ics') {
+    try {
+      res.setHeader('Content-Type', 'text/calendar; charset=utf-8');
+      res.setHeader('Cache-Control', 'no-store');
+      res.status(200).send(buildIcs(classifyRows(await fetchOpenRows())));
+    } catch (err) {
+      console.error('calendar error:', err);
+      res.status(500).send('internal error');
+    }
     return;
   }
   try {

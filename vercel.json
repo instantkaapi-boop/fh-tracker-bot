@@ -1,13 +1,20 @@
 {
+  "rewrites": [
+    { "source": "/api/attendance-reminder", "destination": "/api/attendance?job=reminder" },
+    { "source": "/api/attendance-escalation", "destination": "/api/attendance?job=escalation" },
+    { "source": "/api/attendance-checkout", "destination": "/api/attendance?job=checkout" },
+    { "source": "/api/attendance-status", "destination": "/api/attendance?job=status" },
+    { "source": "/api/calendar", "destination": "/api/dashboard?format=ics" }
+  ],
   "crons": [
     { "path": "/api/cron", "schedule": "30 3 * * *" },
     { "path": "/api/celebrate", "schedule": "35 3 * * *" },
     { "path": "/api/weekly-stats", "schedule": "45 3 * * 1" },
     { "path": "/api/nudge", "schedule": "0 4 * * *" },
-    { "path": "/api/checkin-reminder", "schedule": "30 5 * * *" },
-    { "path": "/api/checkin-escalation", "schedule": "30 6 * * *" },
-    { "path": "/api/checkout-reminder", "schedule": "0 13 * * *" },
-    { "path": "/api/checkin-status", "schedule": "30 13 * * *" },
+    { "path": "/api/attendance-reminder", "schedule": "30 5 * * *" },
+    { "path": "/api/attendance-escalation", "schedule": "30 6 * * *" },
+    { "path": "/api/attendance-checkout", "schedule": "0 13 * * *" },
+    { "path": "/api/attendance-status", "schedule": "30 13 * * *" },
     { "path": "/api/leave-summary", "schedule": "30 14 * * *" },
     { "path": "/api/heartbeat", "schedule": "30 15 * * *" }
   ]

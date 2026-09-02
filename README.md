@@ -38,7 +38,7 @@ team's Notion databases and runs scheduled posts from Vercel Cron.
 | 09:05 | 🎉 posted celebration (`/api/celebrate`, daily incl. Sun) | group |
 | 09:15 Mon | Weekly stats: throughput, per person, on-time %, avg TT | group |
 | 09:30 | Nudge (`/api/nudge`): overdue/due-today post, personal overdue DMs, stale escalation (5d → owner DM, 7d → Ajay DM), handover ping, Monday week plan with 👍 button | group + DMs |
-| 11:00 | Check-in reminder with buttons | group |
+| 11:00 | Check-in reminder with buttons (`/api/attendance-reminder`) | group |
 | 12:00 | Check-in escalation | Ajay DM |
 | 18:30 | Check-out reminder with buttons | group |
 | 19:00 | Check-in status snapshot | group |
@@ -53,7 +53,7 @@ instead of next-morning. Setup in `.env.example`.
 ## Layout
 
 ```
-api/        one file per Vercel function (webhook + crons + views)
+api/        one file per Vercel function (Hobby plan caps at 12; attendance.js serves 4 crons via rewrites)
 lib/        bot.js commands · logic.js pure rules (tested) · format.js rendering
             notion.js/checkin.js/leave.js/brand.js data access · cron.js shared wrapper
 scripts/    set-webhook.js (also registers the / menu) · dev.js (local polling, see warning)
