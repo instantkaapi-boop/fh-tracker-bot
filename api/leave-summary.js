@@ -1,52 +1,24 @@
-import { bot } from '../lib/bot.js';
+import { cronHandler } from '../lib/cron.js';
+import { sendChunked } from '../lib/telegram.js';
 import { monthlyLeaveSummary } from '../lib/leave.js';
+import { monthlyAttendance } from '../lib/checkin.js';
 import { todayIST, isLastDayOfMonthIST } from '../lib/logic.js';
-import { alertAdmin } from '../lib/alert.js';
+import { formatLeaveSummary, formatAttendance } from '../lib/format.js';
 
-function isAuthorized(req) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  const authHeader = req.headers['authorization'];
-  if (authHeader === `Bearer ${secret}`) return true;
-  const { secret: querySecret } = req.query ?? {};
-  return querySecret === secret;
-}
+export const config = { maxDuration: 30 };
 
-function formatSummary(monthStr, totals) {
-  const lines = [`<b>📊 Leave Summary — ${monthStr}</b>`, ''];
-  for (const [person, days] of Object.entries(totals)) {
-    lines.push(`${person}: ${days} day${days === 1 ? '' : 's'}`);
-  }
-  return lines.join('\n');
-}
-
-export default async function handler(req, res) {
-  if (!isAuthorized(req)) {
-    res.status(401).json({ ok: false, error: 'unauthorized' });
-    return;
-  }
-
+// Runs daily at 20:00 IST, only acts on the last day of the month. Posts the
+// leave totals and the attendance report (avg check-in, late count, WFH).
+export default cronHandler('Leave summary (/api/leave-summary)', { requireEnv: ['TELEGRAM_GROUP_CHAT_ID'] }, async (req) => {
   const force = req.query?.force === 'true';
   const today = todayIST();
   if (!force && !isLastDayOfMonthIST(today)) {
-    res.status(200).json({ ok: true, skipped: true, reason: 'not last day of month', today });
-    return;
+    return { skipped: true, reason: 'not last day of month', today };
   }
-
+  const monthStr = today.slice(0, 7);
+  const [totals, attendance] = await Promise.all([monthlyLeaveSummary(monthStr), monthlyAttendance(monthStr)]);
   const chatId = process.env.TELEGRAM_GROUP_CHAT_ID;
-  if (!chatId) {
-    res.status(500).json({ ok: false, error: 'TELEGRAM_GROUP_CHAT_ID not set' });
-    return;
-  }
-
-  try {
-    const monthStr = today.slice(0, 7);
-    const totals = await monthlyLeaveSummary(monthStr);
-    await bot.telegram.sendMessage(chatId, formatSummary(monthStr, totals), { parse_mode: 'HTML' });
-    res.status(200).json({ ok: true, monthStr, totals });
-  } catch (err) {
-    console.error('leave-summary error:', err);
-    await alertAdmin('Leave summary (/api/leave-summary)', err);
-    res.status(500).json({ ok: false, error: 'internal error' });
-  }
-}
+  await sendChunked(chatId, formatLeaveSummary(monthStr, totals), { parse_mode: 'HTML' });
+  await sendChunked(chatId, formatAttendance(monthStr, attendance), { parse_mode: 'HTML' });
+  return { monthStr, totals, attendance };
+});

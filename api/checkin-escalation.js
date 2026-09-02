@@ -1,44 +1,13 @@
-import { bot } from '../lib/bot.js';
+import { cronHandler } from '../lib/cron.js';
+import { sendChunked } from '../lib/telegram.js';
 import { missingCheckins } from '../lib/checkin.js';
-import { alertAdmin } from '../lib/alert.js';
-import { isSundayIST } from '../lib/logic.js';
 
-function isAuthorized(req) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  const authHeader = req.headers['authorization'];
-  if (authHeader === `Bearer ${secret}`) return true;
-  const { secret: querySecret } = req.query ?? {};
-  return querySecret === secret;
-}
+export const config = { maxDuration: 30 };
 
-export default async function handler(req, res) {
-  if (!isAuthorized(req)) {
-    res.status(401).json({ ok: false, error: 'unauthorized' });
-    return;
+export default cronHandler('Check-in escalation (/api/checkin-escalation)', { skipSunday: true, requireEnv: ['ADMIN_CHAT_ID'] }, async () => {
+  const missing = await missingCheckins();
+  if (missing.length > 0) {
+    await sendChunked(process.env.ADMIN_CHAT_ID, `🔴 <b>Still not checked in (past noon)</b>\n${missing.join(', ')}`, { parse_mode: 'HTML' });
   }
-
-  if (isSundayIST()) {
-    res.status(200).json({ ok: true, skipped: 'sunday' });
-    return;
-  }
-
-  const adminChatId = process.env.ADMIN_CHAT_ID;
-  if (!adminChatId) {
-    res.status(500).json({ ok: false, error: 'ADMIN_CHAT_ID not set' });
-    return;
-  }
-
-  try {
-    const missing = await missingCheckins();
-    if (missing.length > 0) {
-      const text = `🔴 <b>Still not checked in (past noon)</b>\n${missing.join(', ')}`;
-      await bot.telegram.sendMessage(adminChatId, text, { parse_mode: 'HTML' });
-    }
-    res.status(200).json({ ok: true, missing });
-  } catch (err) {
-    console.error('checkin-escalation error:', err);
-    await alertAdmin('Check-in escalation (/api/checkin-escalation)', err);
-    res.status(500).json({ ok: false, error: 'internal error' });
-  }
-}
+  return { missing };
+});

@@ -1,51 +1,14 @@
-import { bot } from '../lib/bot.js';
+import { cronHandler } from '../lib/cron.js';
+import { sendChunked } from '../lib/telegram.js';
 import { fetchOpenRows } from '../lib/notion.js';
 import { fetchOpenBrandTasks } from '../lib/brand.js';
 import { formatBrief } from '../lib/format.js';
 import { fetchDailyQuote } from '../lib/quote.js';
-import { alertAdmin } from '../lib/alert.js';
-import { isSundayIST } from '../lib/logic.js';
 
 export const config = { maxDuration: 30 };
 
-function isAuthorized(req) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true; // not configured — fail open only for local/manual testing
-  const authHeader = req.headers['authorization'];
-  if (authHeader === `Bearer ${secret}`) return true;
-  const { secret: querySecret } = req.query ?? {};
-  return querySecret === secret;
-}
-
-export default async function handler(req, res) {
-  if (!isAuthorized(req)) {
-    res.status(401).json({ ok: false, error: 'unauthorized' });
-    return;
-  }
-
-  if (isSundayIST()) {
-    res.status(200).json({ ok: true, skipped: 'sunday' });
-    return;
-  }
-
-  const chatId = process.env.TELEGRAM_GROUP_CHAT_ID;
-  if (!chatId) {
-    res.status(500).json({ ok: false, error: 'TELEGRAM_GROUP_CHAT_ID not set' });
-    return;
-  }
-
-  try {
-    const [rows, brandTasks, quote] = await Promise.all([
-      fetchOpenRows(),
-      fetchOpenBrandTasks(),
-      fetchDailyQuote(),
-    ]);
-    const text = formatBrief(rows, { quote, brandTasks });
-    await bot.telegram.sendMessage(chatId, text, { parse_mode: 'HTML' });
-    res.status(200).json({ ok: true, count: rows.length, brandTaskCount: brandTasks.length, quote });
-  } catch (err) {
-    console.error('cron error:', err);
-    await alertAdmin('Daily brief (/api/cron)', err);
-    res.status(500).json({ ok: false, error: 'internal error' });
-  }
-}
+export default cronHandler('Daily brief (/api/cron)', { skipSunday: true, requireEnv: ['TELEGRAM_GROUP_CHAT_ID'] }, async () => {
+  const [rows, brandTasks, quote] = await Promise.all([fetchOpenRows(), fetchOpenBrandTasks(), fetchDailyQuote()]);
+  await sendChunked(process.env.TELEGRAM_GROUP_CHAT_ID, formatBrief(rows, { quote, brandTasks }), { parse_mode: 'HTML' });
+  return { count: rows.length, brandTaskCount: brandTasks.length, quote };
+});

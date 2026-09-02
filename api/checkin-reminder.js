@@ -1,44 +1,14 @@
-import { bot } from '../lib/bot.js';
+import { cronHandler } from '../lib/cron.js';
+import { sendChunked, CHECKIN_KEYBOARD } from '../lib/telegram.js';
 import { missingCheckins } from '../lib/checkin.js';
-import { alertAdmin } from '../lib/alert.js';
-import { isSundayIST } from '../lib/logic.js';
 
-function isAuthorized(req) {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return true;
-  const authHeader = req.headers['authorization'];
-  if (authHeader === `Bearer ${secret}`) return true;
-  const { secret: querySecret } = req.query ?? {};
-  return querySecret === secret;
-}
+export const config = { maxDuration: 30 };
 
-export default async function handler(req, res) {
-  if (!isAuthorized(req)) {
-    res.status(401).json({ ok: false, error: 'unauthorized' });
-    return;
+export default cronHandler('Check-in reminder (/api/checkin-reminder)', { skipSunday: true, requireEnv: ['TELEGRAM_GROUP_CHAT_ID'] }, async () => {
+  const missing = await missingCheckins();
+  if (missing.length > 0) {
+    const text = `⏰ <b>Check-in reminder</b>\nStill haven't checked in: ${missing.join(', ')}`;
+    await sendChunked(process.env.TELEGRAM_GROUP_CHAT_ID, text, { parse_mode: 'HTML', ...CHECKIN_KEYBOARD });
   }
-
-  if (isSundayIST()) {
-    res.status(200).json({ ok: true, skipped: 'sunday' });
-    return;
-  }
-
-  const chatId = process.env.TELEGRAM_GROUP_CHAT_ID;
-  if (!chatId) {
-    res.status(500).json({ ok: false, error: 'TELEGRAM_GROUP_CHAT_ID not set' });
-    return;
-  }
-
-  try {
-    const missing = await missingCheckins();
-    if (missing.length > 0) {
-      const text = `⏰ <b>Check-in reminder</b>\nStill haven't checked in: ${missing.join(', ')}`;
-      await bot.telegram.sendMessage(chatId, text, { parse_mode: 'HTML' });
-    }
-    res.status(200).json({ ok: true, missing });
-  } catch (err) {
-    console.error('checkin-reminder error:', err);
-    await alertAdmin('Check-in reminder (/api/checkin-reminder)', err);
-    res.status(500).json({ ok: false, error: 'internal error' });
-  }
-}
+  return { missing };
+});
