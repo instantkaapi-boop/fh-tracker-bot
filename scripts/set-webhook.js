@@ -30,6 +30,7 @@ await bot.telegram.setMyCommands([
   { command: 'checkin', description: 'Check in (optional HH:MM)' },
   { command: 'checkout', description: 'Check out (optional HH:MM)' },
   { command: 'wfh', description: 'Check in as working from home' },
+  { command: 'shoot', description: 'Check in as on a shoot' },
   { command: 'late', description: 'Running late: /late <reason>' },
   { command: 'leave', description: '/leave half|full|cancel [date]' },
   { command: 'leaves', description: 'Your leave this month' },

@@ -16,7 +16,9 @@ team's Notion databases and runs scheduled posts from Vercel Cron.
 
 **Attendance** (Daily Check-in + Leave Log in Notion; only Jishnu and Levin are nagged)
 - `/checkin [HH:MM]`, `/checkout [HH:MM]`, or the buttons on the reminder posts
+  (Check in · Check out · WFH · Shoot work · Full leave · Half leave)
 - `/wfh [note]` — check in as working from home
+- `/shoot [note]` — check in as on a shoot
 - `/late <reason>` — heads-up before arriving; reminders show the reason
 - `/leave half|full [date]`, `/leave cancel [date]`, `/leaves`
 
