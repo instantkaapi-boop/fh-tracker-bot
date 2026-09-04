@@ -17,6 +17,10 @@ team's Notion databases and runs scheduled posts from Vercel Cron.
 **Attendance** (Daily Check-in + Leave Log in Notion; only Jishnu and Levin are nagged)
 - `/checkin [HH:MM]`, `/checkout [HH:MM]`, or the buttons on the reminder posts
   (Check in · Check out · WFH · Shoot work · Full leave · Half leave)
+- NFC tags: `https://t.me/Instantkaabot?start=checkin` and `?start=checkout`.
+  Tapping the tag opens the bot chat, one tap of START records it. The tag is
+  shared; the person is identified by their Telegram account (`bot.start` in
+  `lib/bot.js` reads the `checkin`/`checkout` payload).
 - `/wfh [note]` — check in as working from home
 - `/shoot [note]` — check in as on a shoot
 - `/late <reason>` — heads-up before arriving; reminders show the reason
