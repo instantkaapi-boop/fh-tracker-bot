@@ -19,6 +19,7 @@ team's Notion databases and runs scheduled posts from Vercel Cron.
   (Check in · Check out · WFH · Shoot work · Full leave · Half leave)
 - `/wfh [note]` — check in as working from home
 - `/shoot [note]` — check in as on a shoot
+- When Levin checks out, the bot asks what he worked on; his reply is saved to that day's check-in note
 - `/late <reason>` — heads-up before arriving; reminders show the reason
 - `/leave half|full [date]`, `/leave cancel [date]`, `/leaves`
 - Ajay only: plain text `fulldayleave<name>` / `halfdayleave<name>` (spaces/dashes optional,
