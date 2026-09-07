@@ -61,6 +61,7 @@ export default async function handler(req, res) {
     const by = (b) => stableSort(c.filter((r) => r.bucket === b));
     const checkinLis = [
       ...checkin.checkedIn.map((p) => `<li><span class="ok">●</span> ${escapeHtml(p.person)} <span class="meta">in ${p.checkIn}${p.checkOut ? ` · out ${p.checkOut}` : ''}${p.note ? ` · ${escapeHtml(p.note)}` : ''}</span></li>`),
+      ...checkin.onLeave.map((p) => `<li><span class="meta">●</span> ${escapeHtml(p)} <span class="meta">on leave</span></li>`),
       ...checkin.notCheckedIn.map((p) => `<li><span class="warn">●</span> ${escapeHtml(p)} <span class="meta">not checked in</span></li>`),
     ];
     const html = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>FH Tracker</title><style>${CSS}</style></head><body><main>
