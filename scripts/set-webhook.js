@@ -32,7 +32,7 @@ await bot.telegram.setMyCommands([
   { command: 'wfh', description: 'Check in as working from home' },
   { command: 'shoot', description: 'Check in as on a shoot' },
   { command: 'late', description: 'Running late: /late <reason>' },
-  { command: 'leave', description: '/leave half|full|cancel [date]' },
+  { command: 'leave', description: '/leave half|full|cancel [date] — Ajay: /leave <name> ...' },
   { command: 'leaves', description: 'Your leave this month' },
   { command: 'levintask', description: "Add a task to Levin's list" },
   { command: 'levwork', description: "Levin's list / mark done (Ajay)" },

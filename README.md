@@ -26,6 +26,7 @@ team's Notion databases and runs scheduled posts from Vercel Cron.
 - `/shoot [note]` — check in as on a shoot
 - `/late <reason>` — heads-up before arriving; reminders show the reason
 - `/leave half|full [date]`, `/leave cancel [date]`, `/leaves`
+  - Ajay only: `/leave <name> half|full|cancel [date]` logs leave for another roster member
 
 **Levin's checklist** (Brand Manager Kanban)
 - `/levintask <text>` — anyone can add
