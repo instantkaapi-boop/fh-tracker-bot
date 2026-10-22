@@ -8,7 +8,7 @@ team's Notion databases and runs scheduled posts from Vercel Cron.
 **Content pipeline** (Master Content Tracker in Notion)
 - `/brief` — full daily brief: Ready to Post, per-person task lists, Levin's list, Need Attention
 - `/mine` — just your own numbered list
-- `/done <n>` — finish task *n* from `/mine` (stamps the right end dates, moves it to Ready to Post; for J+F rows the first `/done` hands over to Fazil)
+- `/done <n>` — finish task *n* from `/mine` (stamps Completion date, moves it to Ready to Post; Jishnu + Fazil rows are one shared task, either can mark it done)
 - `/begin <n>` — stamp the start date for task *n*
 - `/add <title> | f|j|jf|none | YYYY-MM-DD | filler|paid|wait` — new tracker row (only title required)
 - `/status <name>` — one card's details
@@ -24,9 +24,12 @@ team's Notion databases and runs scheduled posts from Vercel Cron.
   (`bot.start` in `lib/bot.js` reads the payload).
 - `/wfh [note]` — check in as working from home
 - `/shoot [note]` — check in as on a shoot
+- When Levin checks out, the bot asks what he worked on; his reply is saved to that day's check-in note
 - `/late <reason>` — heads-up before arriving; reminders show the reason
 - `/leave half|full [date]`, `/leave cancel [date]`, `/leaves`
-  - Ajay only: `/leave <name> half|full|cancel [date]` logs leave for another roster member
+- Ajay only: `/leave <name> half|full|cancel [date]` logs leave for another roster member
+- Ajay only: plain text `fulldayleave<name>` / `halfdayleave<name>` (spaces/dashes optional,
+  e.g. `full day leave Jishnu`, optionally + a `YYYY-MM-DD` date) logs leave for someone else
 
 **Levin's checklist** (Brand Manager Kanban)
 - `/levintask <text>` — anyone can add
