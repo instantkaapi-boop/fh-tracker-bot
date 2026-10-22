@@ -1,5 +1,9 @@
 import { bot } from '../lib/bot.js';
 
+// Default webhook timeout is too short for the AI chat's tool-call loop
+// (several Anthropic + Notion round trips per answer).
+export const config = { maxDuration: 60 };
+
 // Telegram echoes the secret_token we passed to setWebhook back on every
 // update in this header. Without this check anyone who guesses the URL can
 // POST a fake update and run commands as any roster member.

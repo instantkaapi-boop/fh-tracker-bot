@@ -38,6 +38,11 @@ the 7 PM status post, and the monthly report — late there means after 2:30 PM 
 - `/levintask <text>` — anyone can add
 - `/levwork` / `/levwork <n> done` — Ajay only
 
+**AI chat** (needs `ANTHROPIC_API_KEY`) — @-mention the bot in the group, or DM it anything,
+and it answers in plain English using live Notion data (content pipeline, attendance, leave,
+weekly stats). Read-only: it can't write to Notion, so it'll point you at `/done`, `/leave`
+etc. instead of pretending to act on something.
+
 **Utilities**: `/whoami` (your Telegram id + roster match), `/chatid`
 
 **Read-only views** (token in URL, see `.env.example`)
