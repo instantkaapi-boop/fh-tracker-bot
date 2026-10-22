@@ -3,32 +3,31 @@ import assert from 'node:assert/strict';
 import {
   classify, classifyRows, dueFlag, isLastDayOfMonthIST, weekRangeIST, computeWeeklyStats,
   completionUpdate, startUpdate, stableSort, rowsFor, dueBetween, isLateCheckin, averageTime, staleDays,
+  computeShootKPI, lateShootLog,
 } from '../lib/logic.js';
 
-const base = { id: 'x', content: 'Clip', pipelineStatus: 'Editing', editType: null, expectedDate: null, editingStartDate: null, editingEndHandover: null, fEditingStart: null, fEditingDone: null, completionDate: null, lastEdited: null };
+const base = { id: 'x', content: 'Clip', pipelineStatus: 'Editing', editType: null, expectedDate: null, editingStartDate: null, shootDoneDate: null, completionDate: null, lastEdited: null, createdTime: null };
 const row = (o) => ({ ...base, ...o });
 
 test('Approved overrides everything', () => {
   assert.equal(classify(row({ pipelineStatus: 'Approved', editType: 'Jishnu Only' })).bucket, 'ready');
 });
 
-test('Fazil Only: editing until handover date, then ready', () => {
+test('Editing done overrides Edit Type too', () => {
+  assert.equal(classify(row({ pipelineStatus: 'Editing done', editType: 'Fazil Only' })).bucket, 'ready');
+});
+
+test('Fazil Only / Jishnu Only: editing until Pipeline Status flips', () => {
   assert.deepEqual(classify(row({ editType: 'Fazil Only' })), { bucket: 'fazil', inCharge: 'Fazil', status: 'editing', timeTaken: null });
-  const done = classify(row({ editType: 'Fazil Only', editingEndHandover: '2026-09-02', fEditingStart: '2026-08-30', fEditingDone: '2026-09-02' }));
+  assert.equal(classify(row({ editType: 'Jishnu Only' })).bucket, 'jishnu');
+  const done = classify(row({ editType: 'Fazil Only', pipelineStatus: 'Editing done', editingStartDate: '2026-08-30', completionDate: '2026-09-02' }));
   assert.equal(done.bucket, 'ready');
   assert.equal(done.timeTaken, 3);
 });
 
-test('Jishnu Only: editing until handover date', () => {
-  assert.equal(classify(row({ editType: 'Jishnu Only' })).bucket, 'jishnu');
-  assert.equal(classify(row({ editType: 'Jishnu Only', editingEndHandover: '2026-09-01' })).bucket, 'ready');
-});
-
-test('J+F: Jishnu editing → Fazil sound → ready', () => {
-  assert.equal(classify(row({ editType: 'Jishnu + Fazil' })).bucket, 'jishnu');
-  assert.equal(classify(row({ editType: 'Jishnu + Fazil', editingEndHandover: '2026-09-01' })).status, 'sound');
-  assert.equal(classify(row({ editType: 'Jishnu + Fazil', fEditingStart: '2026-09-01' })).bucket, 'fazil');
-  assert.equal(classify(row({ editType: 'Jishnu + Fazil', fEditingDone: '2026-09-02' })).bucket, 'ready');
+test('Jishnu + Fazil is one shared task, bucket "jf"', () => {
+  assert.equal(classify(row({ editType: 'Jishnu + Fazil' })).bucket, 'jf');
+  assert.equal(classify(row({ editType: 'Jishnu + Fazil', pipelineStatus: 'Editing done' })).bucket, 'ready');
 });
 
 test('no or unknown Edit Type → needs attention regardless of pipeline status', () => {
@@ -67,8 +66,8 @@ test('weekRangeIST is Monday→Sunday', () => {
 
 test('computeWeeklyStats: throughput, per-person credit, on-time %', () => {
   const s = computeWeeklyStats([
-    row({ editType: 'Fazil Only', fEditingStart: '2026-09-01', fEditingDone: '2026-09-03', expectedDate: '2026-09-05', completionDate: '2026-09-03' }),
-    row({ editType: 'Jishnu + Fazil', editingStartDate: '2026-09-01', fEditingDone: '2026-09-05', expectedDate: '2026-09-04', completionDate: '2026-09-05' }),
+    row({ editType: 'Fazil Only', editingStartDate: '2026-09-01', expectedDate: '2026-09-05', completionDate: '2026-09-03' }),
+    row({ editType: 'Jishnu + Fazil', editingStartDate: '2026-09-01', expectedDate: '2026-09-04', completionDate: '2026-09-05' }),
     row({ editType: 'Jishnu Only', completionDate: '2026-09-02' }),
   ]);
   assert.equal(s.throughput, 3);
@@ -89,49 +88,59 @@ test('stableSort: dated first ascending, then title, then id', () => {
   assert.deepEqual(sorted, ['c', 'a', 'd', 'b']);
 });
 
-test('rowsFor: person buckets, Ajay gets ready + unassigned, Levin nothing', () => {
+test('rowsFor: person buckets (J+F shared), Ajay gets ready + unassigned, Levin nothing', () => {
   const c = classifyRows([
     row({ id: '1', editType: 'Fazil Only' }),
     row({ id: '2', editType: 'Jishnu Only' }),
+    row({ id: '5', editType: 'Jishnu + Fazil' }),
     row({ id: '3' }),
     row({ id: '4', pipelineStatus: 'Approved' }),
   ], '2026-09-02');
-  assert.deepEqual(rowsFor('Fazil', c).map((r) => r.id), ['1']);
-  assert.deepEqual(rowsFor('Jishnu', c).map((r) => r.id), ['2']);
+  assert.deepEqual(rowsFor('Fazil', c).map((r) => r.id).sort(), ['1', '5']);
+  assert.deepEqual(rowsFor('Jishnu', c).map((r) => r.id).sort(), ['2', '5']);
   assert.deepEqual(rowsFor('Ajay', c).map((r) => r.id).sort(), ['3', '4']);
   assert.deepEqual(rowsFor('Levin', c), []);
 });
 
-test('completionUpdate per type and phase', () => {
+test('completionUpdate: same shape for every Edit Type, null once past editing', () => {
   const t = '2026-09-02';
-  const f = completionUpdate(row({ editType: 'Fazil Only' }), t);
-  assert.equal(f.outcome, 'ready');
-  assert.ok(f.properties['Editing End/ Handover'] && f.properties['F editing Done'] && f.properties['F editing start']);
-  assert.equal(completionUpdate(row({ editType: 'Fazil Only', editingEndHandover: t }), t), null);
-
-  const j = completionUpdate(row({ editType: 'Jishnu Only' }), t);
-  assert.equal(j.outcome, 'ready');
-  assert.equal(j.properties['Completion date'].date.start, t);
-
-  const jfPhase1 = completionUpdate(row({ editType: 'Jishnu + Fazil' }), t);
-  assert.equal(jfPhase1.outcome, 'handover');
-  assert.deepEqual(Object.keys(jfPhase1.properties), ['Editing End/ Handover']);
-
-  const jfPhase2 = completionUpdate(row({ editType: 'Jishnu + Fazil', editingEndHandover: '2026-09-01', fEditingStart: '2026-09-01' }), t);
-  assert.equal(jfPhase2.outcome, 'ready');
-  assert.equal(jfPhase2.properties['F editing start'], undefined);
-
+  for (const editType of ['Fazil Only', 'Jishnu Only', 'Jishnu + Fazil']) {
+    const u = completionUpdate(row({ editType }), t);
+    assert.equal(u.outcome, 'ready');
+    assert.equal(u.properties['Completion date'].date.start, t);
+    assert.equal(u.properties['Pipeline Status'].select.name, 'Editing done');
+  }
+  assert.equal(completionUpdate(row({ editType: 'Fazil Only', pipelineStatus: 'Editing done' }), t), null);
+  assert.equal(completionUpdate(row({ editType: 'Jishnu + Fazil', pipelineStatus: 'Approved' }), t), null);
   assert.equal(completionUpdate(row({}), t), null);
-  assert.equal(completionUpdate(row({ editType: 'Jishnu + Fazil', fEditingDone: t }), t), null);
 });
 
-test('startUpdate per type and phase', () => {
+test('startUpdate: same shape for every Edit Type, null once already started', () => {
   const t = '2026-09-02';
-  assert.ok(startUpdate(row({ editType: 'Fazil Only' }), t).properties['F editing start']);
-  assert.equal(startUpdate(row({ editType: 'Fazil Only', fEditingStart: t }), t), null);
-  assert.ok(startUpdate(row({ editType: 'Jishnu + Fazil' }), t).properties['Editing Start Date']);
-  assert.ok(startUpdate(row({ editType: 'Jishnu + Fazil', editingEndHandover: t }), t).properties['F editing start']);
+  for (const editType of ['Fazil Only', 'Jishnu Only', 'Jishnu + Fazil']) {
+    const u = startUpdate(row({ editType }), t);
+    assert.equal(u.properties['Editing Start Date'].date.start, t);
+    assert.equal(u.properties['Pipeline Status'].select.name, 'Editing');
+  }
+  assert.equal(startUpdate(row({ editType: 'Fazil Only', editingStartDate: t }), t), null);
   assert.equal(startUpdate(row({}), t), null);
+});
+
+test('computeShootKPI: averages gap per person, credits both on J+F', () => {
+  const kpi = computeShootKPI([
+    row({ editType: 'Fazil Only', shootDoneDate: '2026-09-01', completionDate: '2026-09-03' }), // 2d
+    row({ editType: 'Jishnu + Fazil', shootDoneDate: '2026-09-01', completionDate: '2026-09-05' }), // 4d, credits both
+    row({ editType: 'Jishnu Only', shootDoneDate: null, completionDate: '2026-09-02' }), // no gap, ignored
+  ]);
+  assert.equal(kpi.Fazil, 3); // avg(2, 4)
+  assert.equal(kpi.Jishnu, 4); // avg(4)
+});
+
+test('lateShootLog: flags a card whose Shoot Done Date predates its creation', () => {
+  const late = lateShootLog(row({ shootDoneDate: '2026-09-18', createdTime: '2026-09-20T10:00:00.000Z' }));
+  assert.equal(late.gapDays, 2);
+  assert.equal(lateShootLog(row({ shootDoneDate: '2026-09-20', createdTime: '2026-09-20T10:00:00.000Z' })), null);
+  assert.equal(lateShootLog(row({ shootDoneDate: null, createdTime: '2026-09-20T10:00:00.000Z' })), null);
 });
 
 test('dueBetween inclusive', () => {

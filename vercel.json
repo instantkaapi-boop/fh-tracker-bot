@@ -16,6 +16,7 @@
     { "path": "/api/attendance-checkout", "schedule": "0 13 * * *" },
     { "path": "/api/attendance-status", "schedule": "30 13 * * *" },
     { "path": "/api/leave-summary", "schedule": "30 14 * * *" },
-    { "path": "/api/heartbeat", "schedule": "30 15 * * *" }
+    { "path": "/api/heartbeat", "schedule": "30 15 * * *" },
+    { "path": "/api/kpi-friday", "schedule": "0 14 * * 5" }
   ]
 }

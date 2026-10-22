@@ -4,7 +4,7 @@ import { chunkMessage } from '../lib/chunk.js';
 import { formatBrief, formatMine, formatOverdue, escapeHtml } from '../lib/format.js';
 import { classifyRows } from '../lib/logic.js';
 
-const base = { id: 'x', content: 'Clip', pipelineStatus: 'Editing', editType: null, expectedDate: null, editingStartDate: null, editingEndHandover: null, fEditingStart: null, fEditingDone: null, completionDate: null, lastEdited: null };
+const base = { id: 'x', content: 'Clip', pipelineStatus: 'Editing', editType: null, expectedDate: null, editingStartDate: null, shootDoneDate: null, completionDate: null, lastEdited: null, createdTime: null };
 const row = (o) => ({ ...base, ...o });
 
 test('chunkMessage splits on newlines under the limit', () => {

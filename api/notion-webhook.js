@@ -1,8 +1,7 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { bot } from '../lib/bot.js';
 import { fetchRow, markCelebrated, propertyNamesById } from '../lib/notion.js';
-import { escapeHtml, formatHandover } from '../lib/format.js';
-import { dmPerson } from '../lib/telegram.js';
+import { escapeHtml } from '../lib/format.js';
 import { alertAdmin } from '../lib/alert.js';
 
 // Notion signs the raw body, so body parsing is off and we read the stream.
@@ -74,12 +73,6 @@ export default async function handler(req, res) {
     if (changed.includes('Posted') && row.posted && !row.celebrated && process.env.TELEGRAM_GROUP_CHAT_ID) {
       await markCelebrated(row.id);
       await bot.telegram.sendMessage(process.env.TELEGRAM_GROUP_CHAT_ID, `🎉 <b>${escapeHtml(row.content)}</b> posted!`, { parse_mode: 'HTML' });
-    }
-
-    if (changed.includes('Editing End/ Handover') && row.editType === 'Jishnu + Fazil' && row.editingEndHandover && !row.fEditingStart && !row.fEditingDone) {
-      const text = formatHandover(row);
-      if (process.env.TELEGRAM_GROUP_CHAT_ID) await bot.telegram.sendMessage(process.env.TELEGRAM_GROUP_CHAT_ID, text, { parse_mode: 'HTML' });
-      await dmPerson('Fazil', text);
     }
   } catch (err) {
     console.error('notion-webhook error:', err);
