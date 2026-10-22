@@ -1,6 +1,6 @@
 import { cronHandler } from '../lib/cron.js';
 import { sendChunked, CHECKIN_KEYBOARD } from '../lib/telegram.js';
-import { missingCheckins, missingCheckouts, todayCheckinStatus } from '../lib/checkin.js';
+import { missingCheckins, missingCheckouts, todayCheckinStatus, AFTERNOON_CHECKIN_ROSTER, ALL_CHECKIN_ROSTER } from '../lib/checkin.js';
 import { formatCheckinStatus } from '../lib/format.js';
 
 export const config = { maxDuration: 30 };
@@ -27,8 +27,18 @@ const JOBS = {
     return { missing };
   }),
 
+  // Afternoon-only staff (e.g. interns) have different hours, so they get
+  // their own check-in reminder instead of the 11 AM one built for morning staff.
+  'afternoon-reminder': cronHandler('Afternoon check-in reminder (/api/attendance-afternoon-reminder)', { skipSunday: true, requireEnv: ['TELEGRAM_GROUP_CHAT_ID'] }, async () => {
+    const missing = await missingCheckins(AFTERNOON_CHECKIN_ROSTER);
+    if (missing.length > 0) {
+      await sendChunked(group(), `⏰ <b>Afternoon check-in reminder</b>\nStill haven't checked in: ${missing.join(', ')}`, { parse_mode: 'HTML', ...CHECKIN_KEYBOARD });
+    }
+    return { missing };
+  }),
+
   checkout: cronHandler('Check-out reminder (/api/attendance-checkout)', { skipSunday: true, requireEnv: ['TELEGRAM_GROUP_CHAT_ID'] }, async () => {
-    const { pendingCheckout, neverCheckedIn } = await missingCheckouts();
+    const { pendingCheckout, neverCheckedIn } = await missingCheckouts(ALL_CHECKIN_ROSTER);
     const lines = ['⏰ <b>Check-out reminder</b>'];
     if (pendingCheckout.length > 0) lines.push(`Still haven't checked out: ${pendingCheckout.join(', ')}`);
     if (neverCheckedIn.length > 0) lines.push(`No check-in recorded today: ${neverCheckedIn.join(', ')}`);

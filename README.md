@@ -14,7 +14,10 @@ team's Notion databases and runs scheduled posts from Vercel Cron.
 - `/status <name>` — one card's details
 - Voice note → transcript + buttons to add it to Levin's list or the tracker (needs `OPENAI_API_KEY`)
 
-**Attendance** (Daily Check-in + Leave Log in Notion; only Jishnu and Levin are nagged)
+**Attendance** (Daily Check-in + Leave Log in Notion; Jishnu, Levin and Shamil are nagged —
+Fazil and Ajay are not. Shamil is afternoon-only: his own ~2:30 PM check-in reminder instead
+of the 11 AM one, no noon escalation, but he's included in the 6:30 PM checkout reminder,
+the 7 PM status post, and the monthly report — late there means after 2:30 PM for him, 10:30 AM for everyone else)
 - `/checkin [HH:MM]`, `/checkout [HH:MM]`, or the buttons on the reminder posts
   (Check in · Check out · WFH · Shoot work · Full leave · Half leave)
 - NFC tags: `https://t.me/Instantkaabot?start=<payload>` where payload is
