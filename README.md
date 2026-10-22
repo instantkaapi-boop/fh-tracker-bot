@@ -7,7 +7,7 @@ team's Notion databases and runs scheduled posts from Vercel Cron.
 
 **Content pipeline** (Master Content Tracker in Notion)
 - `/brief` — full daily brief: Ready to Post, per-person task lists, Levin's list, Need Attention
-- `/mine` — just your own numbered list
+- `/mine` — just your own numbered list (or ask in plain English: "what should I work on", "what's Fazil working on")
 - `/done <n>` — finish task *n* from `/mine` (stamps Completion date, moves it to Ready to Post; Jishnu + Fazil rows are one shared task, either can mark it done)
 - `/begin <n>` — stamp the start date for task *n*
 - `/add <title> | f|j|jf|none | YYYY-MM-DD | filler|paid|wait` — new tracker row (only title required)
