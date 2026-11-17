@@ -6,15 +6,16 @@ team's Notion databases and runs scheduled posts from Vercel Cron.
 ## What it does
 
 **Content pipeline** (Master Content Tracker in Notion)
-- `/brief` — full daily brief: Ready to Post, per-person task lists, Levin's list, Need Attention
+- `/brief` — full daily brief: shoots today/tomorrow, posting today, Ready to Post, per-person task lists, Manager's list, Need Attention
+- `/week` — shoots, deliveries and posts for the next 7 days, day by day
 - `/mine` — just your own numbered list (or ask in plain English: "what should I work on", "what's Fazil working on")
 - `/done <n>` — finish task *n* from `/mine` (stamps Completion date, moves it to Ready to Post; Jishnu + Fazil rows are one shared task, either can mark it done)
 - `/begin <n>` — stamp the start date for task *n*
 - `/add <title> | f|j|jf|none | YYYY-MM-DD | filler|paid|wait` — new tracker row (only title required)
 - `/status <name>` — one card's details
-- Voice note → transcript + buttons to add it to Levin's list or the tracker (needs `OPENAI_API_KEY`)
+- Voice note → transcript + buttons to add it to the manager's list or the tracker (needs `OPENAI_API_KEY`)
 
-**Attendance** (Daily Check-in + Leave Log in Notion; Jishnu, Levin and Shamil are nagged —
+**Attendance** (Daily Check-in + Leave Log in Notion; Jishnu and Shamil are nagged —
 Fazil and Ajay are not. Shamil is afternoon-only: his own ~2:30 PM check-in reminder instead
 of the 11 AM one, no noon escalation, but he's included in the 6:30 PM checkout reminder,
 the 7 PM status post, and the monthly report — late there means after 2:30 PM for him, 10:30 AM for everyone else)
@@ -27,16 +28,15 @@ the 7 PM status post, and the monthly report — late there means after 2:30 PM 
   (`bot.start` in `lib/bot.js` reads the payload).
 - `/wfh [note]` — check in as working from home
 - `/shoot [note]` — check in as on a shoot
-- When Levin checks out, the bot asks what he worked on; his reply is saved to that day's check-in note
 - `/late <reason>` — heads-up before arriving; reminders show the reason
 - `/leave half|full [date]`, `/leave cancel [date]`, `/leaves`
 - Ajay only: `/leave <name> half|full|cancel [date]` logs leave for another roster member
 - Ajay only: plain text `fulldayleave<name>` / `halfdayleave<name>` (spaces/dashes optional,
   e.g. `full day leave Jishnu`, optionally + a `YYYY-MM-DD` date) logs leave for someone else
 
-**Levin's checklist** (Brand Manager Kanban)
-- `/levintask <text>` — anyone can add
-- `/levwork` / `/levwork <n> done` — Ajay only
+**Manager's checklist** (Brand Manager Kanban — unassigned, anyone can add; Ajay manages it)
+- `/managertask <text>` — anyone can add
+- `/managerwork` / `/managerwork <n> done` — Ajay only
 
 **AI chat** (needs `ANTHROPIC_API_KEY`) — @-mention the bot in the group, or DM it anything,
 and it answers in plain English using live Notion data (content pipeline, attendance, leave,
@@ -56,7 +56,7 @@ etc. instead of pretending to act on something.
 | 09:00 | Daily brief + quote (`/api/cron`) | group |
 | 09:05 | 🎉 posted celebration (`/api/celebrate`, daily incl. Sun) | group |
 | 09:15 Mon | Weekly stats: throughput, per person, on-time %, avg TT | group |
-| 09:30 | Nudge (`/api/nudge`): overdue/due-today post, personal overdue DMs, stale escalation (5d → owner DM, 7d → Ajay DM), handover ping, Monday week plan with 👍 button | group + DMs |
+| 09:30 | Nudge (`/api/nudge`): overdue/due-today post, personal overdue DMs, stale escalation (5d → owner DM, 7d → Ajay DM), handover ping, Monday week plan with 👍 button, schedule-risk DM to the manager | group + DMs |
 | 11:00 | Check-in reminder with buttons (`/api/attendance-reminder`) | group |
 | 12:00 | Check-in escalation | Ajay DM |
 | 18:30 | Check-out reminder with buttons | group |

@@ -37,7 +37,6 @@ test('formatMine numbers match rowsFor order', () => {
   ]);
   assert.ok(out.indexOf('1. ') < out.indexOf('Sooner'));
   assert.ok(out.includes('2. ') && out.indexOf('2. ') < out.indexOf('Later'));
-  assert.equal(formatMine('Levin', [], []), "Levin's list is empty. 🎉");
 });
 
 test('formatOverdue returns null when nothing is hot', () => {

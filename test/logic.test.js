@@ -32,7 +32,7 @@ test('Jishnu + Fazil is one shared task, bucket "jf"', () => {
 
 test('no or unknown Edit Type → needs attention regardless of pipeline status', () => {
   assert.equal(classify(row({ pipelineStatus: 'Shoot Done' })).bucket, 'needs_assignment');
-  assert.equal(classify(row({ editType: 'Levin Only' })).bucket, 'needs_assignment');
+  assert.equal(classify(row({ editType: 'Someone Else Only' })).bucket, 'needs_assignment');
 });
 
 test('dueFlag', () => {
@@ -88,7 +88,7 @@ test('stableSort: dated first ascending, then title, then id', () => {
   assert.deepEqual(sorted, ['c', 'a', 'd', 'b']);
 });
 
-test('rowsFor: person buckets (J+F shared), Ajay gets ready + unassigned, Levin nothing', () => {
+test('rowsFor: person buckets (J+F shared), Ajay gets ready + unassigned, Shamil nothing', () => {
   const c = classifyRows([
     row({ id: '1', editType: 'Fazil Only' }),
     row({ id: '2', editType: 'Jishnu Only' }),
@@ -99,7 +99,7 @@ test('rowsFor: person buckets (J+F shared), Ajay gets ready + unassigned, Levin 
   assert.deepEqual(rowsFor('Fazil', c).map((r) => r.id).sort(), ['1', '5']);
   assert.deepEqual(rowsFor('Jishnu', c).map((r) => r.id).sort(), ['2', '5']);
   assert.deepEqual(rowsFor('Ajay', c).map((r) => r.id).sort(), ['3', '4']);
-  assert.deepEqual(rowsFor('Levin', c), []);
+  assert.deepEqual(rowsFor('Shamil', c), []);
 });
 
 test('completionUpdate: same shape for every Edit Type, null once past editing', () => {

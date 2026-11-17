@@ -72,7 +72,7 @@ ${section('🔥 Overdue / due today', stableSort(c.filter((r) => r.due && r.buck
 ${section('✅ Ready to Post', by('ready'), rowLi)}
 ${section('👤 Fazil', by('fazil'), rowLi)}
 ${section('👤 Jishnu', by('jishnu'), rowLi)}
-${section('👤 Levin', brandTasks, (t, i) => `<li>${i + 1}. ${escapeHtml(t.content)} <span class="meta">${escapeHtml(t.status.toLowerCase())}</span></li>`)}
+${section('👤 Manager', brandTasks, (t, i) => `<li>${i + 1}. ${escapeHtml(t.content)} <span class="meta">${escapeHtml(t.status.toLowerCase())}</span></li>`)}
 ${section('💡 Need attention', by('needs_assignment'), rowLi)}
 </div></main></body></html>`;
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
