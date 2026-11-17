@@ -6,7 +6,8 @@ team's Notion databases and runs scheduled posts from Vercel Cron.
 ## What it does
 
 **Content pipeline** (Master Content Tracker in Notion)
-- `/brief` — full daily brief: Ready to Post, per-person task lists, Manager's list, Need Attention
+- `/brief` — full daily brief: shoots today/tomorrow, posting today, Ready to Post, per-person task lists, Manager's list, Need Attention
+- `/week` — shoots, deliveries and posts for the next 7 days, day by day
 - `/mine` — just your own numbered list (or ask in plain English: "what should I work on", "what's Fazil working on")
 - `/done <n>` — finish task *n* from `/mine` (stamps Completion date, moves it to Ready to Post; Jishnu + Fazil rows are one shared task, either can mark it done)
 - `/begin <n>` — stamp the start date for task *n*
@@ -55,7 +56,7 @@ etc. instead of pretending to act on something.
 | 09:00 | Daily brief + quote (`/api/cron`) | group |
 | 09:05 | 🎉 posted celebration (`/api/celebrate`, daily incl. Sun) | group |
 | 09:15 Mon | Weekly stats: throughput, per person, on-time %, avg TT | group |
-| 09:30 | Nudge (`/api/nudge`): overdue/due-today post, personal overdue DMs, stale escalation (5d → owner DM, 7d → Ajay DM), handover ping, Monday week plan with 👍 button | group + DMs |
+| 09:30 | Nudge (`/api/nudge`): overdue/due-today post, personal overdue DMs, stale escalation (5d → owner DM, 7d → Ajay DM), handover ping, Monday week plan with 👍 button, schedule-risk DM to the manager | group + DMs |
 | 11:00 | Check-in reminder with buttons (`/api/attendance-reminder`) | group |
 | 12:00 | Check-in escalation | Ajay DM |
 | 18:30 | Check-out reminder with buttons | group |

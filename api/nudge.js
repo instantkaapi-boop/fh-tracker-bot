@@ -3,8 +3,9 @@ import { sendChunked, dmPerson, PLAN_KEYBOARD } from '../lib/telegram.js';
 import { fetchOpenRows } from '../lib/notion.js';
 import { fetchOpenBrandTasks } from '../lib/brand.js';
 import { classifyRows, rowsFor, todayIST, isMondayIST, weekRangeIST, dueBetween, STALE_DM_OWNER_DAYS, STALE_DM_ADMIN_DAYS } from '../lib/logic.js';
-import { formatOverdue, formatOverdueDm, formatStaleDm, formatWeeklyPlan } from '../lib/format.js';
-import { ADMIN_PERSON } from '../lib/roster.js';
+import { formatOverdue, formatOverdueDm, formatStaleDm, formatWeeklyPlan, formatRisks } from '../lib/format.js';
+import { riskList } from '../lib/schedule.js';
+import { ADMIN_PERSON, MANAGER_PERSON } from '../lib/roster.js';
 
 export const config = { maxDuration: 60 };
 
@@ -14,12 +15,13 @@ export const config = { maxDuration: 60 };
 //  2. DM each editor their own overdue list
 //  3. stale escalation: owner DM at 5 days untouched, admin DM at 7
 //  4. Mondays: this week's plan with a "Got it" button
+//  5. manager DM: items with schedule risks (late delivery, missed shoot/post, not started)
 export default cronHandler('Morning nudge (/api/nudge)', { skipSunday: true, requireEnv: ['TELEGRAM_GROUP_CHAT_ID'] }, async () => {
   const chatId = process.env.TELEGRAM_GROUP_CHAT_ID;
   const today = todayIST();
   const [rows, brandTasks] = await Promise.all([fetchOpenRows(), fetchOpenBrandTasks()]);
   const classified = classifyRows(rows, today);
-  const report = { overduePost: false, dms: {}, stale: {}, plan: false };
+  const report = { overduePost: false, dms: {}, stale: {}, plan: false, risks: 0 };
 
   // 1. group post
   const overdueText = formatOverdue(classified, today);
@@ -51,6 +53,14 @@ export default cronHandler('Morning nudge (/api/nudge)', { skipSunday: true, req
       await sendChunked(chatId, planText, { parse_mode: 'HTML', ...PLAN_KEYBOARD });
       report.plan = true;
     }
+  }
+
+  // 5. manager risk DM
+  const risks = riskList(rows, today);
+  const riskText = formatRisks(risks);
+  if (riskText) {
+    report.risks = risks.length;
+    await dmPerson(MANAGER_PERSON, riskText);
   }
 
   return report;

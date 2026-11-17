@@ -21,6 +21,7 @@ await bot.telegram.setWebhook(endpoint, {
 // "/" autocomplete menu in Telegram. Order = display order.
 await bot.telegram.setMyCommands([
   { command: 'brief', description: "Today's full content brief" },
+  { command: 'week', description: 'Shoots, deliveries, posts: next 7 days' },
   { command: 'mine', description: 'Just your own numbered list' },
   { command: 'done', description: 'Finish task: /done <number>' },
   { command: 'begin', description: 'Start task: /begin <number>' },
