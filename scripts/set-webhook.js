@@ -34,8 +34,8 @@ await bot.telegram.setMyCommands([
   { command: 'late', description: 'Running late: /late <reason>' },
   { command: 'leave', description: '/leave half|full|cancel [date] — Ajay: /leave <name> ...' },
   { command: 'leaves', description: 'Your leave this month' },
-  { command: 'levintask', description: "Add a task to Levin's list" },
-  { command: 'levwork', description: "Levin's list / mark done (Ajay)" },
+  { command: 'managertask', description: 'Add a task to the manager list' },
+  { command: 'managerwork', description: 'Manager list / mark done (Ajay)' },
   { command: 'whoami', description: 'Your Telegram id + roster match' },
   { command: 'chatid', description: 'Show this chat id' },
 ]);
